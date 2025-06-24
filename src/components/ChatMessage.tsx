@@ -1,5 +1,4 @@
-import React, { Message } from "@/contexts/ChatContext";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { User, Bot, FileImage, FileAudio, File as FileIcon, RefreshCcw, Edit2, Copy, Check, Download, FileText } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import gsap from "gsap";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Message } from "@/types/chat";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -47,11 +47,11 @@ export default function ChatMessage({
       return message.content;
     }
     
-    // Handle object content
-    if (typeof message.content === 'object') {
+    // Handle object content with proper type checking
+    if (typeof message.content === 'object' && message.content !== null) {
       // Check if it's an error object with msg property
-      if (message.content.msg) {
-        return String(message.content.msg);
+      if ('msg' in message.content && typeof (message.content as any).msg === 'string') {
+        return String((message.content as any).msg);
       }
       // Otherwise stringify the object
       return JSON.stringify(message.content);
