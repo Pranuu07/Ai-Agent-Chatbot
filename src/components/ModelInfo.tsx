@@ -15,64 +15,51 @@ export default function ModelInfo() {
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>AI Model Setup Instructions</DialogTitle>
+          <DialogTitle>AI Model Information</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
           <Alert>
             <Download className="h-4 w-4" />
             <AlertDescription>
-              <strong>Phi3 Mini (Local)</strong> - Requires Ollama installation for local processing
+              <strong>Available Models:</strong> Gemini 2.0 Flash and Groq Llama - Cloud-based models ready to use
             </AlertDescription>
           </Alert>
           
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Setting up Phi3 Mini Locally</h3>
+            <h3 className="text-lg font-semibold">Current Available Models</h3>
             
             <div className="space-y-3">
               <div>
-                <h4 className="font-medium">Step 1: Install Ollama</h4>
-                <p className="text-sm text-muted-foreground">Download and install Ollama from: <code>https://ollama.ai</code></p>
+                <h4 className="font-medium">Gemini 2.0 Flash</h4>
+                <p className="text-sm text-muted-foreground">Google's latest and most capable model with fast processing</p>
               </div>
               
               <div>
-                <h4 className="font-medium">Step 2: Download Phi3 Mini Model</h4>
-                <div className="bg-muted p-3 rounded-lg">
-                  <code className="text-sm">ollama pull phi3:mini</code>
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="font-medium">Step 3: Start Ollama Service</h4>
-                <div className="bg-muted p-3 rounded-lg">
-                  <code className="text-sm">ollama serve</code>
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="font-medium">Step 4: Verify Installation</h4>
-                <div className="bg-muted p-3 rounded-lg">
-                  <code className="text-sm">ollama list</code>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">You should see phi3:mini in the list</p>
+                <h4 className="font-medium">Groq Llama</h4>
+                <p className="text-sm text-muted-foreground">High-speed inference model optimized for performance</p>
               </div>
             </div>
             
             <Alert>
               <Terminal className="h-4 w-4" />
               <AlertDescription>
-                <strong>Note:</strong> Ollama runs on localhost:11434 by default. Make sure this port is available.
+                <strong>Note:</strong> Both models are cloud-based and require no local installation. API keys are configured on the backend.
               </AlertDescription>
             </Alert>
           </div>
           
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Other Models</h3>
-            <ul className="space-y-2 text-sm">
-              <li><strong>Gemini 2.0 Flash:</strong> Cloud-based, requires API key (already configured)</li>
-              <li><strong>Groq Llama:</strong> Cloud-based, requires API key (already configured)</li>
-            </ul>
+          {/* Commented out local model section
+          <div className="space-y-4 opacity-50">
+            <h3 className="text-lg font-semibold">Local Models (Not Available)</h3>
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-medium">Phi3 Mini (Local) - Disabled</h4>
+                <p className="text-sm text-muted-foreground">Local processing requires Ollama installation</p>
+              </div>
+            </div>
           </div>
+          */}
         </div>
       </DialogContent>
     </Dialog>

@@ -1,11 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
-// Mobile detection utility
-const isMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-         window.innerWidth <= 768;
-};
-
 class ApiService {
   async sendMessage(
     conversationId: string,
@@ -14,17 +8,14 @@ class ApiService {
     systemPrompt?: string,
     files?: File[]
   ) {
-    // Check if trying to use Ollama on mobile
-    if (model.includes('phi3') || model.includes('ollama')) {
-      if (isMobile()) {
-        throw new Error("Ollama models are not available on mobile devices. Please use Gemini or Groq models instead.");
-      }
-    }
+    // Ensure we only use supported models
+    const supportedModels = ['gemini-2.0-flash', 'groq-llama'];
+    const safeModel = supportedModels.includes(model) ? model : 'gemini-2.0-flash';
 
     // If files are provided, upload them first
     if (files && files.length > 0) {
       for (const file of files) {
-        await this.uploadDocument(file, conversationId);
+        await this.uploadDocument(file, conversationId || 'temp');
       }
     }
 
@@ -34,7 +25,7 @@ class ApiService {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model,
+        model: safeModel,
         message,
         conversation_id: conversationId || undefined,
         system_prompt: systemPrompt,
@@ -57,6 +48,10 @@ class ApiService {
   }
 
   async createChat(model: string, title: string, systemPrompt?: string) {
+    // Ensure we only use supported models
+    const supportedModels = ['gemini-2.0-flash', 'groq-llama'];
+    const safeModel = supportedModels.includes(model) ? model : 'gemini-2.0-flash';
+
     const response = await fetch(`${API_BASE_URL}/chats`, {
       method: "POST",
       headers: {
@@ -65,7 +60,7 @@ class ApiService {
       body: JSON.stringify({
         id: Date.now().toString(),
         title,
-        model,
+        model: safeModel,
         system_prompt: systemPrompt,
       }),
     });
@@ -172,7 +167,11 @@ class ApiService {
   async uploadDocument(file: File, chatId: string) {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("chat_id", chatId);
+    // Generate proper chat ID if not provided
+    const properChatId = chatId || Date.now().toString();
+    formData.append("chat_id", properChatId);
+
+    console.log(`📎 Uploading document ${file.name} for chat ${properChatId}`);
 
     const response = await fetch(`${API_BASE_URL}/upload-document`, {
       method: "POST",
@@ -180,10 +179,14 @@ class ApiService {
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Failed to upload document: ${errorText}`);
       throw new Error("Failed to upload document");
     }
 
-    return response.json();
+    const result = await response.json();
+    console.log(`✅ Document uploaded successfully:`, result);
+    return result;
   }
 
   async scrapeUrl(url: string) {

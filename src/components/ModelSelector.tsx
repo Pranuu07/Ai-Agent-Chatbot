@@ -20,16 +20,6 @@ interface ModelOption {
 
 const models: ModelOption[] = [
   {
-    value: "phi3:mini",
-    label: "Phi 3 Mini",
-    description: "Local Microsoft Phi model",
-    icon: <svg viewBox="0 0 24 24" className="h-5 w-5 text-green-500" fill="currentColor">
-      <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-      <path d="M2 17L12 22L22 17" />
-      <path d="M2 12L12 17L22 12" />
-    </svg>
-  },
-  {
     value: "gemini-2.0-flash",
     label: "Gemini 2.0 Flash",
     description: "Google's latest Gemini model",
@@ -61,6 +51,13 @@ export default function ModelSelector() {
       );
     }
   }, []);
+
+  // Set default model to Gemini if currently using removed models
+  useEffect(() => {
+    if (currentModel === "phi3:mini") {
+      setCurrentModel("gemini-2.0-flash");
+    }
+  }, [currentModel, setCurrentModel]);
 
   const handleSelectModel = (model: ModelType) => {
     if (model !== currentModel) {

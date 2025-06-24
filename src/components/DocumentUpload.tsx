@@ -7,10 +7,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { apiClient } from "@/services/apiClient";
 
 interface DocumentUploadProps {
+  chatId?: string;
   onUploadSuccess?: (filename: string, chunkCount: number) => void;
 }
 
-export default function DocumentUpload({ onUploadSuccess }: DocumentUploadProps) {
+export default function DocumentUpload({ chatId, onUploadSuccess }: DocumentUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const { toast } = useToast();
@@ -47,6 +48,12 @@ export default function DocumentUpload({ onUploadSuccess }: DocumentUploadProps)
     try {
       const formData = new FormData();
       formData.append('file', file);
+      
+      // Generate chat ID if not provided
+      const uploadChatId = chatId || Date.now().toString();
+      formData.append('chat_id', uploadChatId);
+
+      console.log(`📎 Uploading ${file.name} for chat ${uploadChatId}`);
 
       const response = await apiClient.post('/upload-document', formData, {
         headers: {
@@ -54,7 +61,7 @@ export default function DocumentUpload({ onUploadSuccess }: DocumentUploadProps)
         },
       });
 
-      const { filename, chunk_count } = response.data;
+      const { filename, chunk_count, chat_id } = response.data;
       
       setUploadedFiles(prev => [...prev, filename]);
       
@@ -66,6 +73,8 @@ export default function DocumentUpload({ onUploadSuccess }: DocumentUploadProps)
       if (onUploadSuccess) {
         onUploadSuccess(filename, chunk_count);
       }
+
+      console.log(`✅ Document uploaded successfully: ${filename} (${chunk_count} chunks)`);
 
     } catch (error: any) {
       console.error('Upload error:', error);

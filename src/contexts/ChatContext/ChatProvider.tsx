@@ -8,7 +8,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [currentModel, setCurrentModel] = useState<ModelType>('phi3:mini');
+  const [currentModel, setCurrentModel] = useState<ModelType>('gemini-2.0-flash');
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -24,7 +24,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           id: chat._id || chat.id || '',
           title: chat.title,
           messages: [], // Messages will be loaded when chat is selected
-          model: chat.model,
+          model: chat.model === 'phi3:mini' ? 'gemini-2.0-flash' : chat.model, // Replace phi3:mini with gemini
           createdAt: new Date(chat.created_at),
           updatedAt: new Date(chat.updated_at),
           systemPrompt: chat.system_prompt,
@@ -39,7 +39,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           setCurrentChatId(lastChatId);
           const chat = formattedChats.find(c => c.id === lastChatId);
           if (chat) {
-            setCurrentModel(chat.model);
+            // Ensure we don't use phi3:mini model
+            const safeModel = chat.model === 'phi3:mini' ? 'gemini-2.0-flash' : chat.model;
+            setCurrentModel(safeModel);
             // Load messages for the restored chat
             await loadChatMessages(lastChatId);
           }
@@ -73,7 +75,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       
       // Convert backend message format to frontend format
       const formattedMessages: Message[] = messages.map(msg => ({
-        id: msg._id,
+        id: msg._id || Date.now().toString(),
         role: msg.role,
         content: msg.content,
         timestamp: new Date(msg.timestamp),
@@ -107,23 +109,26 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   // Create a new chat with the specified model and save to backend immediately
   const createChat = async (model: ModelType, systemPrompt?: string) => {
     try {
+      // Ensure we don't use phi3:mini model
+      const safeModel = model === 'phi3:mini' ? 'gemini-2.0-flash' : model;
+      
       const newChatId = Date.now().toString();
       const newChat: Chat = {
         id: newChatId,
         title: 'New Chat',
         messages: [],
-        model,
+        model: safeModel,
         createdAt: new Date(),
         updatedAt: new Date(),
         systemPrompt,
       };
       
       // Save to backend immediately to ensure persistence
-      await apiService.createChat(model, 'New Chat', systemPrompt);
+      await apiService.createChat(safeModel, 'New Chat', systemPrompt);
       
       setChats((prev) => [newChat, ...prev]);
       setCurrentChatId(newChatId);
-      setCurrentModel(model);
+      setCurrentModel(safeModel);
       
       console.log(`Created new chat with ID: ${newChatId}`);
     } catch (error) {

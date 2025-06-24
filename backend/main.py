@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -24,14 +23,10 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Chat Application", version="1.0")
 
-# Configure CORS with production-ready settings
+# Configure CORS for production deployment
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if os.getenv("ENVIRONMENT") == "development" else [
-        "https://your-frontend-domain.vercel.app",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ],
+    allow_origins=["*"],  # In production, replace with your actual frontend domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,7 +38,7 @@ simple_rag = SimpleRAG()
 web_search = WebSearchService()
 conversations_cache = {}
 
-# ... keep existing code (Pydantic models)
+# Pydantic models
 class MessageRequest(BaseModel):
     model: str
     message: str
@@ -75,72 +70,6 @@ class WebSearchRequest(BaseModel):
     query: str
     max_results: Optional[int] = 5
 
-# Enhanced Ollama handler with mobile detection
-def handle_ollama_request(messages, model="phi3:mini"):
-    """Handle ollama requests with proper error handling"""
-    try:
-        import requests
-        
-        OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-        
-        # Check if Ollama is available (mainly for local development)
-        try:
-            response = requests.get(f"{OLLAMA_BASE_URL}/api/version", timeout=5)
-            if response.status_code != 200:
-                return "Ollama service is not available. Please use Gemini or Groq models for production deployment."
-        except requests.exceptions.RequestException:
-            return "Ollama service is not available. Please use Gemini or Groq models for production deployment."
-        
-        # Format messages for Ollama
-        formatted_messages = []
-        for msg in messages:
-            formatted_messages.append({
-                "role": msg["role"],
-                "content": msg["content"]
-            })
-        
-        payload = {
-            "model": model,
-            "messages": formatted_messages,
-            "stream": False,
-            "options": {
-                "temperature": 0.7,
-                "top_p": 0.9,
-                "top_k": 40,
-                "num_ctx": 2048,
-                "num_predict": 512,
-                "repeat_penalty": 1.1,
-            }
-        }
-        
-        logger.info(f"Sending request to Ollama with model: {model}")
-        
-        response = requests.post(
-            f"{OLLAMA_BASE_URL}/api/chat",
-            json=payload,
-            timeout=60,
-            headers={"Content-Type": "application/json"}
-        )
-        
-        if response.status_code == 200:
-            result = response.json()
-            if "message" in result and "content" in result["message"]:
-                content = result["message"]["content"]
-                logger.info(f"Received response from Ollama: {len(content)} characters")
-                return content
-            else:
-                logger.error(f"Unexpected response format from Ollama: {result}")
-                return "Received unexpected response format from Ollama"
-        else:
-            error_msg = f"Ollama request failed with status {response.status_code}: {response.text}"
-            logger.error(error_msg)
-            return error_msg
-            
-    except Exception as e:
-        logger.error(f"Error with Ollama service: {e}")
-        return f"Ollama is not available. Please use Gemini or Groq models instead."
-
-# ... keep existing code (all endpoint definitions remain the same)
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok", "message": "AI Chat API is running"}
@@ -156,17 +85,28 @@ async def web_search_endpoint(request: WebSearchRequest):
 @app.post("/api/upload-document")
 async def upload_document(file: UploadFile = File(...), chat_id: str = Form(...)):
     try:
+        logger.info(f"📎 Uploading document {file.filename} for chat {chat_id}")
+        
+        # Ensure we have a valid chat_id
+        if not chat_id or chat_id == 'temp':
+            chat_id = str(int(time.time() * 1000))  # Generate timestamp-based ID
+            logger.info(f"Generated new chat_id: {chat_id}")
+        
         file_content = await file.read()
         result = simple_rag.process_document(file_content, file.filename, chat_id)
+        
+        logger.info(f"✅ Document processed successfully: {file.filename}")
         
         return {
             "success": True,
             "message": f"Document {file.filename} processed successfully",
             "filename": file.filename,
-            "chunk_count": result["chunk_count"]
+            "chunk_count": result["chunk_count"],
+            "chat_id": chat_id
         }
         
     except Exception as e:
+        logger.error(f"❌ Document upload error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/generate-title")
@@ -183,6 +123,7 @@ async def generate_title(request: GenerateTitleRequest):
             }
         ]
         
+        # Only use supported models
         if request.model == 'groq-llama':
             title = ask_groq(messages)
         else:
@@ -207,6 +148,12 @@ async def chat(request: MessageRequest):
     conversation_id = request.conversation_id
     system_prompt = request.system_prompt
     model = request.model
+    
+    # Ensure we only use supported models
+    supported_models = ['gemini-2.0-flash', 'groq-llama']
+    if model not in supported_models:
+        model = 'gemini-2.0-flash'
+        logger.warning(f"Unsupported model requested, using {model} instead")
     
     start_time = time.time()
     used_web_search = False
@@ -290,9 +237,8 @@ async def chat(request: MessageRequest):
                 response_text = ask_gemini(conversations_cache[conversation_id])
             elif model == 'groq-llama':
                 response_text = ask_groq(conversations_cache[conversation_id])
-            elif model == 'phi3:mini':
-                response_text = handle_ollama_request(conversations_cache[conversation_id], model)
             else:
+                # Fallback to Gemini
                 response_text = ask_gemini(conversations_cache[conversation_id])
                 
             if used_web_search and agent_response:
@@ -329,7 +275,6 @@ async def chat(request: MessageRequest):
         response_time = time.time() - start_time
         raise HTTPException(status_code=500, detail=str(e))
 
-# ... keep existing code (all other endpoints)
 @app.get("/api/chats")
 async def get_chats():
     try:
