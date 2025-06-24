@@ -1,5 +1,4 @@
-
-import { Message } from "@/contexts/ChatContext";
+import React, { Message } from "@/contexts/ChatContext";
 import { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { User, Bot, FileImage, FileAudio, File as FileIcon, RefreshCcw, Edit2, Copy, Check, Download, FileText } from "lucide-react";
@@ -37,8 +36,35 @@ export default function ChatMessage({
   const messageRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(message.content);
+  const [editContent, setEditContent] = useState('');
   const { toast } = useToast();
+  
+  // Safely extract content as string
+  const safeContent = React.useMemo(() => {
+    if (!message || !message.content) return '';
+    
+    if (typeof message.content === 'string') {
+      return message.content;
+    }
+    
+    // Handle object content
+    if (typeof message.content === 'object') {
+      // Check if it's an error object with msg property
+      if (message.content.msg) {
+        return String(message.content.msg);
+      }
+      // Otherwise stringify the object
+      return JSON.stringify(message.content);
+    }
+    
+    // Fallback to string conversion
+    return String(message.content);
+  }, [message.content]);
+
+  // Initialize edit content safely
+  useEffect(() => {
+    setEditContent(safeContent);
+  }, [safeContent]);
   
   useEffect(() => {
     if (messageRef.current && isLastMessage) {
@@ -59,9 +85,6 @@ export default function ChatMessage({
   const isSystem = message.role === "system";
 
   if (isSystem) return null; // Don't display system messages
-
-  // Ensure message content is always a string
-  const safeContent = typeof message.content === 'string' ? message.content : JSON.stringify(message.content);
 
   const handleCopy = async () => {
     try {

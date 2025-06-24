@@ -1,6 +1,37 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
 class ApiService {
+  // Helper method to safely extract error messages
+  private extractErrorMessage(error: any): string {
+    // Handle different error formats
+    if (typeof error === 'string') {
+      return error;
+    }
+    
+    // Handle array of validation errors
+    if (Array.isArray(error)) {
+      return error.map(err => {
+        if (typeof err === 'object' && err.msg) {
+          return err.msg;
+        }
+        return String(err);
+      }).join(', ');
+    }
+    
+    // Handle single validation error object
+    if (typeof error === 'object' && error.msg) {
+      return error.msg;
+    }
+    
+    // Handle nested detail property
+    if (typeof error === 'object' && error.detail) {
+      return this.extractErrorMessage(error.detail);
+    }
+    
+    // Fallback to string conversion
+    return String(error);
+  }
+
   async sendMessage(
     conversationId: string,
     message: string,
@@ -35,7 +66,8 @@ class ApiService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to send message");
+        const errorMessage = this.extractErrorMessage(errorData.detail || errorData || "Failed to send message");
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -53,7 +85,7 @@ class ApiService {
       return data;
     } catch (error) {
       console.error('Error in sendMessage:', error);
-      throw error;
+      throw new Error(this.extractErrorMessage(error));
     }
   }
 
@@ -247,9 +279,10 @@ class ApiService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Failed to upload document: ${errorText}`);
-        throw new Error("Failed to upload document");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = this.extractErrorMessage(errorData.detail || errorData || "Failed to upload document");
+        console.error(`Failed to upload document: ${errorMessage}`);
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -257,7 +290,7 @@ class ApiService {
       return result;
     } catch (error) {
       console.error('Error in uploadDocument:', error);
-      throw error;
+      throw new Error(this.extractErrorMessage(error));
     }
   }
 
