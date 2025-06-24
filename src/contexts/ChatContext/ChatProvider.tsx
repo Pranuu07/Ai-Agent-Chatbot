@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect } from 'react';
 import { apiService } from '@/services/api';
 import { Chat, ChatContextType, Message, ModelType } from '@/types/chat';
@@ -19,16 +18,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         console.log('Loading existing chats from backend...');
         const existingChats = await apiService.getChats();
         
-        // Convert backend chat format to frontend format
-        const formattedChats: Chat[] = existingChats.map(chat => ({
-          id: chat._id || chat.id || '',
-          title: chat.title,
-          messages: [], // Messages will be loaded when chat is selected
-          model: chat.model === 'phi3:mini' ? 'gemini-2.0-flash' : chat.model, // Replace phi3:mini with gemini
-          createdAt: new Date(chat.created_at),
-          updatedAt: new Date(chat.updated_at),
-          systemPrompt: chat.system_prompt,
-        }));
+        // Convert backend chat format to frontend format with proper error handling
+        const formattedChats: Chat[] = existingChats.map(chat => {
+          // Ensure we have valid data
+          const chatId = chat._id || chat.id || Date.now().toString();
+          const chatTitle = typeof chat.title === 'string' ? chat.title : 'New Chat';
+          const chatModel = chat.model === 'phi3:mini' ? 'gemini-2.0-flash' : (chat.model || 'gemini-2.0-flash');
+          
+          return {
+            id: chatId,
+            title: chatTitle,
+            messages: [], // Messages will be loaded when chat is selected
+            model: chatModel as ModelType,
+            createdAt: chat.created_at ? new Date(chat.created_at) : new Date(),
+            updatedAt: chat.updated_at ? new Date(chat.updated_at) : new Date(),
+            systemPrompt: typeof chat.system_prompt === 'string' ? chat.system_prompt : undefined,
+          };
+        });
         
         setChats(formattedChats);
         console.log(`Loaded ${formattedChats.length} chats from backend`);
@@ -36,6 +42,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         // Try to restore the last selected chat from localStorage
         const lastChatId = localStorage.getItem('lastSelectedChatId');
         if (lastChatId && formattedChats.find(chat => chat.id === lastChatId)) {
+          console.log(`Restoring last selected chat: ${lastChatId}`);
           setCurrentChatId(lastChatId);
           const chat = formattedChats.find(c => c.id === lastChatId);
           if (chat) {
@@ -49,6 +56,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         
       } catch (error) {
         console.error('Failed to load chats:', error);
+        // Reset to empty state on error
+        setChats([]);
+        setCurrentChatId(null);
       } finally {
         setIsLoading(false);
         setIsInitialLoading(false);
@@ -62,6 +72,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (currentChatId) {
       localStorage.setItem('lastSelectedChatId', currentChatId);
+      console.log(`Saved current chat ID to localStorage: ${currentChatId}`);
     } else {
       localStorage.removeItem('lastSelectedChatId');
     }
@@ -73,14 +84,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       console.log(`Loading messages for chat ${chatId}`);
       const messages = await apiService.getChatHistory(chatId);
       
-      // Convert backend message format to frontend format
-      const formattedMessages: Message[] = messages.map(msg => ({
-        id: msg._id || Date.now().toString(),
-        role: msg.role,
-        content: msg.content,
-        timestamp: new Date(msg.timestamp),
-        model: undefined, // Backend doesn't store this
-      }));
+      // Convert backend message format to frontend format with proper error handling
+      const formattedMessages: Message[] = messages.map(msg => {
+        // Ensure message content is always a string
+        const messageContent = typeof msg.content === 'string' ? msg.content : 
+                              typeof msg.content === 'object' ? JSON.stringify(msg.content) : 
+                              String(msg.content || '');
+        
+        return {
+          id: msg._id || Date.now().toString(),
+          role: msg.role || 'user',
+          content: messageContent,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+          model: undefined, // Backend doesn't store this
+        };
+      });
       
       // Update the chat with loaded messages
       setChats(prev => prev.map(chat => 
@@ -92,6 +110,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       console.log(`Loaded ${formattedMessages.length} messages for chat ${chatId}`);
     } catch (error) {
       console.error(`Failed to load messages for chat ${chatId}:`, error);
+      // Don't fail completely, just log the error
     }
   };
 
