@@ -7,15 +7,23 @@ import time
 from datetime import datetime
 import json
 import logging
+import sys
 
-# Import services
-from services.gemini_service import ask_gemini
-from services.groq_service import ask_groq
-from services.simple_rag import SimpleRAG
-from services.web_search_service import WebSearchService
+# Add the current directory to Python path for imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Import MongoDB client
-from database.mongodb import MongoDB
+# Import services with error handling
+try:
+    from services.gemini_service import ask_gemini
+    from services.groq_service import ask_groq
+    from services.simple_rag import SimpleRAG
+    from services.web_search_service import WebSearchService
+    from database.mongodb import MongoDB
+    print("✅ All services imported successfully")
+except ImportError as e:
+    print(f"❌ Import error: {e}")
+    print("Please ensure all required packages are installed and services are available")
+    sys.exit(1)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Chat Application", version="1.0")
 
-# Configure CORS for production deployment
+# Configure CORS for development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, replace with your actual frontend domain
@@ -33,10 +41,15 @@ app.add_middleware(
 )
 
 # Initialize services
-mongo_db = MongoDB()
-simple_rag = SimpleRAG()
-web_search = WebSearchService()
-conversations_cache = {}
+try:
+    mongo_db = MongoDB()
+    simple_rag = SimpleRAG()
+    web_search = WebSearchService()
+    conversations_cache = {}
+    print("✅ All services initialized successfully")
+except Exception as e:
+    print(f"❌ Service initialization error: {e}")
+    logger.error(f"Failed to initialize services: {e}")
 
 # Pydantic models
 class MessageRequest(BaseModel):

@@ -9,8 +9,8 @@ from concurrent.futures import ThreadPoolExecutor
 # Load environment variables
 load_dotenv()
 
-# API key from environment variables with new key as fallback
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyC0sKQhg3sqDJXQUxK8_om4FfQY1884NXM")
+# API key from environment variables
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Use the faster flash model for better performance
 GEMINI_MODEL = "gemini-2.0-flash"
@@ -60,7 +60,6 @@ def ask_gemini(messages):
         formatted_content = "\n\n".join(prompt_parts)
         
         print(f"📝 Prompt length: {len(formatted_content)} characters")
-        print(f"🔑 Using API key: {GEMINI_API_KEY[:10]}...{GEMINI_API_KEY[-5:]}")
         
         # Generate response with optimized settings for speed
         print("⚡ Sending optimized request to Gemini API...")
@@ -91,7 +90,6 @@ def ask_gemini(messages):
             raise Exception("Empty response from Gemini API")
             
         print(f"📄 Response length: {len(response.text)} characters")
-        print(f"🏃‍♂️ Speed improvement: ~{max(0, 3.0 - response_time):.1f}s faster than before")
         
         return response.text
         

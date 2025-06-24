@@ -1,231 +1,193 @@
 
 # Smart AI Agent Hub 🤖✨
 
-A comprehensive AI agent application that enables intelligent conversations with multiple AI models and autonomous task execution capabilities. This application goes beyond traditional chatbots by providing agents that can take actions, process documents, interact with external systems, and **automatically search the web for real-time information**.
+A comprehensive AI agent application that enables intelligent conversations with multiple AI models, document processing, and web search capabilities.
 
-## 🚀 Application Overview
+## 🚀 Features
 
-Smart AI Agent Hub is a full-stack web application designed to provide users with AI agents that can autonomously perform tasks and execute actions. The application combines the power of modern AI language models with tool integration, document processing capabilities, external system interactions, and **intelligent web search integration**.
-
-## 🎯 Current Agent Capabilities
-
-### 🔍 **NEW: Intelligent Web Search Agent**
+### 🔍 Intelligent Web Search Agent
 - **Automatic Detection**: AI automatically detects when queries need real-time information
 - **Smart Triggers**: Recognizes keywords like "latest", "current", "today", "weather", "stock price", "news"
 - **Real-time Data**: Fetches current information from the web without user intervention
 - **Source Citation**: Provides sources for web-searched information
-- **Seamless Integration**: Combines web search with document context when appropriate
-- **No UI Changes**: Works transparently through existing chat interface
 
 ### 📄 Document Intelligence Agent
 - **PDF Processing**: Extract and analyze content from PDF documents
-- **OCR Processing**: Read text from images using Tesseract.js and store in knowledge base
-- **Audio Transcription**: Process audio files (placeholder for full implementation)
+- **OCR Processing**: Read text from images and store in knowledge base
 - **Multi-format Support**: Handle various document types (DOC, DOCX, TXT, MD)
 - **RAG Integration**: Use documents as context for intelligent responses
-- **Smart Storage**: OCR text automatically stored in knowledge base without cluttering chat
 
 ### 🌐 Web Intelligence Agent
 - **URL Scraping**: Extract content from web pages
 - **Content Analysis**: Process and understand web content
 - **Real-time Information**: Access current web information
-- **Content Library**: Store and manage scraped content for later use
-- **Preview System**: Preview scraped content before sending to AI
-
-### 📁 File Processing Agent
-- **Image Analysis**: OCR text extraction with knowledge base integration
-- **File Type Recognition**: Automatic detection and appropriate processing
-- **Batch Processing**: Handle multiple files simultaneously
-- **Export Options**: Download responses in TXT and HTML formats
 
 ### 💬 Conversation Management
-- **Multi-Model Support**: Switch between different AI models
+- **Multi-Model Support**: Switch between Gemini 2.0 Flash and Groq Llama models
 - **System Prompts**: Customize AI behavior with specialized roles
 - **Message Regeneration**: Regenerate responses without creating duplicates
 - **Export Capabilities**: Download conversations in multiple formats
-- **Emoji Enhancement**: Rich, engaging responses with appropriate emojis
 
-## 🧪 Testing Your AI Agent - Sample Questions
+## 🛠️ Local Development Setup
 
-### 🔍 **NEW: Web Search Tests**
+### Prerequisites
+- **Python 3.8+** installed
+- **Node.js 18+** and npm installed
+- **MongoDB** running locally or MongoDB Atlas connection
+- **Git** installed
+
+### Quick Start
+
+1. **Clone the repository:**
+   ```bash
+   git clone <your-repo-url>
+   cd ai-agent-chatbot
+   ```
+
+2. **Backend Setup:**
+   ```bash
+   cd backend
+   
+   # Create virtual environment
+   python -m venv venv
+   
+   # Activate virtual environment
+   # Windows:
+   venv\Scripts\activate
+   # macOS/Linux:
+   source venv/bin/activate
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   ```
+
+3. **Environment Variables:**
+   ```bash
+   # Copy environment file
+   cp .env.example .env
+   ```
+   
+   Edit `.env` and add your configuration:
+   ```
+   MONGO_URI=mongodb+srv://pranathisubrahmanyam07:6Klm0Nlg90cg3pdg@cluster0.cacx9au.mongodb.net/
+   GEMINI_API_KEY=your_gemini_api_key_here
+   GROQ_API_KEY=your_groq_api_key_here
+   ```
+
+4. **Frontend Setup:**
+   ```bash
+   # Navigate to project root
+   cd ..
+   
+   # Install frontend dependencies
+   npm install
+   
+   # Copy frontend environment file
+   cp .env.example .env.local
+   ```
+
+5. **Start the Application:**
+   
+   **Option 1: Use the batch script (Windows):**
+   ```bash
+   run_local.bat
+   ```
+   
+   **Option 2: Manual start:**
+   ```bash
+   # Terminal 1: Start Backend
+   cd backend
+   python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+   
+   # Terminal 2: Start Frontend
+   npm run dev
+   ```
+
+### Access the Application
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+
+## 🔧 Required Packages
+
+### Backend Dependencies
+```
+fastapi==0.104.1          # Web framework
+uvicorn==0.24.0           # ASGI server
+pymongo==4.6.0            # MongoDB driver
+python-dotenv==1.0.0      # Environment variables
+python-multipart==0.0.6   # File upload support
+requests==2.31.0          # HTTP requests
+google-generativeai==0.3.2 # Gemini API
+pydantic==1.10.12         # Data validation
+PyPDF2==3.0.1             # PDF processing
+python-docx==0.8.11       # Word document processing
+mammoth==1.6.0            # Document conversion
+beautifulsoup4==4.12.2    # Web scraping
+psutil==5.9.0             # System monitoring
+```
+
+### Frontend Dependencies
+- React 18+ with TypeScript
+- Vite for build tooling
+- Tailwind CSS for styling
+- Shadcn/UI for components
+- Tanstack Query for data fetching
+
+## 🔑 API Keys Setup
+
+### Required API Keys
+1. **Gemini API Key**: Get from [Google AI Studio](https://aistudio.google.com/)
+2. **Groq API Key**: Get from [Groq Console](https://console.groq.com/) (free tier available)
+3. **MongoDB Connection**: Use the provided connection string or your own MongoDB instance
+
+### Environment Configuration
+Add these to your `.env` file in the backend directory:
+```
+MONGO_URI=mongodb+srv://pranathisubrahmanyam07:6Klm0Nlg90cg3pdg@cluster0.cacx9au.mongodb.net/
+GEMINI_API_KEY=your_actual_gemini_api_key_here
+GROQ_API_KEY=your_actual_groq_api_key_here
+```
+
+## 🧪 Testing Your AI Agent
+
+### Sample Test Queries
 1. **Real-time Info**: "What's the latest news about AI developments?"
-2. **Current Data**: "What's the weather like today in New York?"
-3. **Stock Prices**: "What's Tesla's current stock price?"
-4. **Recent Events**: "Tell me about recent breakthroughs in quantum computing"
-5. **Trending Topics**: "What's trending on social media today?"
-6. **Current Facts**: "Who is the current president of France?"
+2. **Document Analysis**: Upload a PDF and ask "Summarize the key points"
+3. **Web Search**: "What's Tesla's current stock price?"
+4. **Hybrid Intelligence**: "Compare today's AI news with the research paper I uploaded"
 
-### 📊 Document Processing Tests
-1. **OCR Test**: "Upload an image with text and ask me to analyze it"
-2. **PDF Analysis**: "Upload a PDF document and summarize its key points"
-3. **Knowledge Integration**: "After uploading documents, ask about specific content to test RAG"
+## 🚧 Troubleshooting
 
-### 🔄 **NEW: Combined Intelligence Tests**
-1. **Multi-source Analysis**: "Compare the latest AI news with the research paper I uploaded"
-2. **Contextual Search**: "How does today's Tesla stock price relate to the financial report in my documents?"
-3. **Real-time + Documents**: "What are the current trends in the technology mentioned in my uploaded document?"
+### Common Issues
+1. **Backend not starting**: Check if all dependencies are installed and MongoDB is accessible
+2. **Frontend can't connect**: Verify backend is running on port 8000
+3. **API errors**: Check your API keys in the .env file
+4. **Module import errors**: Ensure you're in the correct directory and virtual environment is activated
 
-### 🎨 Creative and Analytical Tests
-1. **Role-Based Responses**: "Switch to Creative Writing Assistant and help me write a story"
-2. **Technical Analysis**: "Switch to Technology Expert and explain quantum computing"
-3. **Career Guidance**: "Switch to Career Coach and help me plan my career path"
+### Debugging Steps
+1. Check console logs in browser developer tools
+2. Check backend logs in the terminal
+3. Verify environment variables are loaded correctly
+4. Test API endpoints using the built-in docs at http://localhost:8000/docs
 
-### 🔄 Agent Behavior Tests
-1. **Memory Test**: "Remember my preferences from earlier in the conversation"
-2. **Context Switching**: "Handle multiple topics while maintaining context"
-3. **Tool Integration**: "Use both document processing and web scraping in a single task"
+## 📱 Current Architecture
 
-### 📋 Advanced Workflow Tests
-1. **Multi-Step Tasks**: "Research a topic, process related documents, and create a comprehensive report"
-2. **Error Handling**: "Test how the agent handles invalid URLs or corrupted files"
-3. **Export Functions**: "Generate a response and export it in both TXT and HTML formats"
+- **Frontend**: React + TypeScript + Vite + Tailwind CSS
+- **Backend**: FastAPI + Python
+- **Database**: MongoDB (cloud-hosted)
+- **AI Models**: Gemini 2.0 Flash, Groq Llama
+- **Document Processing**: PyPDF2, python-docx, mammoth
+- **Web Scraping**: BeautifulSoup4
 
-## 🔧 What Makes This an AI Agent (Not Just a Chatbot)
+## 🤝 Support
 
-### Traditional Chatbot vs Our AI Agent
-
-**Chatbot** 💬:
-- Responds to questions
-- Text-only interactions
-- No memory or context
-- Passive behavior
-- Static knowledge
-
-**Our AI Agent** 🤖:
-- **Proactive**: Can initiate actions and workflows
-- **Tool-enabled**: Processes documents, scrapes web content, stores data
-- **Context-aware**: Maintains conversation history and document knowledge
-- **Multi-modal**: Handles text, images, audio, documents, and web content
-- **Goal-oriented**: Works towards completing complex objectives
-- **Learning**: Builds knowledge base from uploaded content
-- **🆕 Real-time Intelligence**: Automatically searches web for current information
-- **🆕 Smart Decision Making**: Knows when to use documents vs web search vs both
-
-## 🛠️ Current Features in Action
-
-### 1. **NEW: Intelligent Web Search** 🔍
-```
-User: "What's the latest news about AI?"
-Agent: 
-1. 🧠 Detects query needs real-time information
-2. 🔍 Automatically searches web for latest AI news
-3. 📊 Combines multiple sources
-4. 💬 Provides comprehensive response with citations
-5. 🔗 No additional user input required
-```
-
-### 2. **NEW: Hybrid Intelligence** 🧠
-```
-User: "How does today's stock market relate to the financial analysis in my document?"
-Agent:
-1. 🔍 Searches web for current stock market data
-2. 📄 Retrieves relevant content from uploaded document
-3. 🔄 Combines both sources intelligently
-4. 📊 Provides comprehensive analysis
-```
-
-### 3. Document Intelligence 📚
-```
-User: "Analyze this contract PDF"
-Agent: 
-1. Processes PDF using advanced parsing
-2. Stores content in knowledge base
-3. Provides intelligent analysis
-4. Answers follow-up questions using stored content
-```
-
-### 4. Web Intelligence 🌐
-```
-User: "Research AI trends"
-Agent:
-1. Scrapes relevant URLs
-2. Stores content in library
-3. Analyzes and summarizes findings
-4. Provides comprehensive insights
-```
-
-## 🚀 Getting Started with Agent Testing
-
-### Quick Start Commands:
-1. **🆕 "What's happening in the world today?"** (Triggers automatic web search)
-2. **🆕 "Tell me the current weather and compare it to climate data in my document"** (Hybrid intelligence)
-3. **"Act as a Career Coach and help me plan my next steps"**
-4. **"Scrape this URL and analyze the content: [URL]"**
-5. **"Process this image and tell me what text you found"**
-
-### Advanced Testing:
-1. **🆕 Real-time queries**: Ask about current events, weather, stock prices
-2. **🆕 Hybrid intelligence**: Combine real-time web data with uploaded documents
-3. **Multi-step workflows**: Combine document processing with web research
-4. **Context retention**: Test memory across multiple interactions
-5. **Export functionality**: Download results in different formats
-
-## 🎯 Agent Capabilities Summary
-
-### ✅ Currently Implemented:
-- 🔍 **NEW: Intelligent web search with automatic detection**
-- 🧠 **NEW: Hybrid intelligence (documents + web search)**
-- 📄 Document processing and RAG integration
-- 🌐 Web content scraping and storage
-- 🖼️ OCR with knowledge base integration
-- 💬 Multi-model conversation management
-- 🎨 Role-based system prompts
-- 📱 Export capabilities (TXT/HTML)
-- 🔄 Smart regeneration without duplicates
-- 📚 Content library management
-
-### 🚧 Future Enhancements:
-- 📧 Email integration
-- 📅 Calendar management
-- 🔗 API integrations
-- 📊 Data analysis tools
-- 🎵 Audio transcription
-- 🤖 Workflow automation
-
-## 🔧 Setup Requirements
-
-### Backend Dependencies:
-```bash
-pip install -r backend/requirements.txt
-```
-
-### New Dependencies Added:
-- `beautifulsoup4==4.12.2` - Web scraping and HTML parsing
-- `psutil==5.9.0` - System resource monitoring
-
-### Environment Setup:
-1. **MongoDB**: Required for chat and document storage
-2. **Ollama**: For local AI model (`phi3:mini`)
-3. **Python 3.8+**: Backend runtime
-4. **Node.js 18+**: Frontend runtime
-
-### Optional API Keys:
-- **No API keys required**: Web search uses free DuckDuckGo API
-- **Gemini API**: For Gemini model access
-- **Groq API**: For Groq model access
-
-## 💡 Pro Tips for Testing
-
-1. **🆕 Try Real-time Queries**: Ask about current events, weather, stock prices
-2. **🆕 Test Hybrid Intelligence**: Upload a document, then ask questions that combine document content with current information
-3. **Start Simple**: Test basic features before complex workflows
-4. **Use System Prompts**: Try different AI personalities for varied responses
-5. **Combine Tools**: Use document processing with web scraping for comprehensive research
-6. **Test Memory**: Reference previous conversations to verify context retention
-7. **Export Results**: Save important responses for later reference
-
-## 🆕 Web Search Trigger Examples
-
-The AI automatically detects and searches when you ask:
-- **Time-sensitive**: "latest", "recent", "current", "today", "now"
-- **Real-time data**: "weather", "stock price", "exchange rate"
-- **Current events**: "news", "breaking", "trending", "happening"
-- **Factual queries**: "what is the current", "how much does", "when did"
-
-## 🤝 Support and Documentation
-
-For detailed setup instructions, troubleshooting, and advanced configuration, please refer to the technical documentation and setup guides included in this repository.
+For issues and questions:
+1. Check the troubleshooting section above
+2. Review console logs for specific error messages
+3. Ensure all environment variables are properly set
+4. Verify API keys are valid and have sufficient quota
 
 ---
 
-**Transform your workflow with an AI that doesn't just chat, but acts intelligently with real-time web intelligence! 🚀✨**
+**Transform your workflow with an AI that doesn't just chat, but acts intelligently! 🚀✨**
